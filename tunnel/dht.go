@@ -5,8 +5,8 @@ import (
 	"crypto/ed25519"
 	"errors"
 	"fmt"
-	"github.com/xssnick/tonutils-go/adnl"
 	"github.com/xssnick/tonutils-go/adnl/dht"
+	"github.com/xssnick/tonutils-go/adnl/keys"
 	"github.com/xssnick/tonutils-go/adnl/overlay"
 	"github.com/xssnick/tonutils-go/tl"
 	"sort"
@@ -58,8 +58,8 @@ func (g *Gateway) updateDHT(ctx context.Context, ttlSeconds int64) error {
 	var newList []overlay.Node
 	// refresh if already exists
 	for i := range nodesList.List {
-		id, ok := nodesList.List[i].ID.(adnl.PublicKeyED25519)
-		if ok && id.Key.Equal(node.ID.(adnl.PublicKeyED25519).Key) {
+		id, ok := nodesList.List[i].ID.(keys.PublicKeyED25519)
+		if ok && id.Key.Equal(node.ID.(keys.PublicKeyED25519).Key) {
 			newList = append(newList, *node)
 			refreshed = true
 			break
@@ -128,13 +128,13 @@ func (g *Gateway) DiscoverNodes(ctx context.Context) ([]ed25519.PublicKey, error
 		return nil, nil
 	}
 
-	var keys []ed25519.PublicKey
+	var keysList []ed25519.PublicKey
 	for _, node := range nodesList.List {
-		id, ok := node.ID.(adnl.PublicKeyED25519)
+		id, ok := node.ID.(keys.PublicKeyED25519)
 		if ok {
-			keys = append(keys, id.Key)
+			keysList = append(keysList, id.Key)
 		}
 	}
 
-	return keys, nil
+	return keysList, nil
 }

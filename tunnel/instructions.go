@@ -12,7 +12,7 @@ import (
 	"github.com/ton-blockchain/adnl-tunnel/metrics"
 	"github.com/xssnick/ton-payment-network/pkg/payments"
 	"github.com/xssnick/ton-payment-network/tonpayments/db"
-	"github.com/xssnick/tonutils-go/adnl"
+	"github.com/xssnick/tonutils-go/adnl/keys"
 	"github.com/xssnick/tonutils-go/tl"
 	"github.com/xssnick/tonutils-go/tlb"
 	"github.com/xssnick/tonutils-go/tvm/cell"
@@ -701,7 +701,7 @@ func (ins BindOutInstruction) Execute(ctx context.Context, s *Section, _ *Encryp
 		return fmt.Errorf("no external addresses in gate")
 	}
 
-	sharedPayloadKey, err := adnl.SharedKey(s.gw.key, ins.ReceiverPubKey)
+	sharedPayloadKey, err := keys.SharedKey(s.gw.key, ins.ReceiverPubKey)
 	if err != nil {
 		return fmt.Errorf("calculate shared_payload key for out failed: %w", err)
 	}

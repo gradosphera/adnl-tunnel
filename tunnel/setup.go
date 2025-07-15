@@ -14,16 +14,18 @@ import (
 	"github.com/xssnick/ton-payment-network/pkg/payments"
 	"github.com/xssnick/ton-payment-network/tonpayments"
 	"github.com/xssnick/ton-payment-network/tonpayments/chain"
+	"github.com/xssnick/ton-payment-network/tonpayments/chain/client"
 	"github.com/xssnick/ton-payment-network/tonpayments/db"
 	"github.com/xssnick/ton-payment-network/tonpayments/db/leveldb"
 	"github.com/xssnick/ton-payment-network/tonpayments/transport"
+	adnlTransport "github.com/xssnick/ton-payment-network/tonpayments/transport/adnl"
+	pWallet "github.com/xssnick/ton-payment-network/tonpayments/wallet"
 	"github.com/xssnick/tonutils-go/address"
 	"github.com/xssnick/tonutils-go/adnl"
 	"github.com/xssnick/tonutils-go/adnl/dht"
 	"github.com/xssnick/tonutils-go/liteclient"
 	"github.com/xssnick/tonutils-go/tlb"
 	"github.com/xssnick/tonutils-go/ton"
-	"github.com/xssnick/tonutils-go/ton/wallet"
 	"math/big"
 	"math/rand"
 	"net"
@@ -410,11 +412,13 @@ func preparePayerPayments(ctx context.Context, apiClient ton.APIClientWrapped, d
 		_ = gate.Close()
 	})
 
-	walletPrv := ed25519.NewKeyFromSeed(cfg.Payments.WalletPrivateKey)
-	fdb, freshDb, err := leveldb.NewDB(cfg.Payments.DBPath, nodePrv.Public().(ed25519.PublicKey))
+	ldb, freshDb, err := leveldb.NewLevelDB(cfg.Payments.DBPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to init leveldb: %w", err)
 	}
+
+	walletPrv := ed25519.NewKeyFromSeed(cfg.Payments.WalletPrivateKey)
+	fdb := db.NewDB(ldb, nodePrv.Public().(ed25519.PublicKey))
 	defer onEnd(fdb.Close)
 
 	if freshDb {
@@ -427,7 +431,8 @@ func preparePayerPayments(ctx context.Context, apiClient ton.APIClientWrapped, d
 		}
 	}
 
-	tr := transport.NewServer(dhtClient, gate, serverPrv, nodePrv, false)
+	srv := adnlTransport.NewServer(dhtClient, gate, serverPrv, nodePrv, false)
+	tr := transport.NewTransport(nodePrv, srv, false)
 	defer onEnd(tr.Stop)
 
 	var seqno uint32
@@ -458,20 +463,13 @@ func preparePayerPayments(ctx context.Context, apiClient ton.APIClientWrapped, d
 		}
 	}
 
-	w, err := wallet.FromPrivateKey(apiClient, walletPrv, wallet.ConfigHighloadV3{
-		MessageTTL: 3*60 + 30,
-		MessageBuilder: func(ctx context.Context, subWalletId uint32) (id uint32, createdAt int64, err error) {
-			createdAt = time.Now().Unix() - 30 // something older than last master block, to pass through LS external's time validation
-			id = uint32(createdAt) % (1 << 23) // TODO: store seqno in db
-			return
-		},
-	})
+	w, err := pWallet.InitWallet(apiClient, walletPrv)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to init wallet: %w", err)
 	}
 	logger.Info().Msg("wallet initialized with address: " + w.WalletAddress().String())
 
-	svc, err = tonpayments.NewService(apiClient, fdb, tr, w, inv, nodePrv, cfg.Payments.ChannelsConfig)
+	svc, err = tonpayments.NewService(client.NewTON(apiClient), fdb, tr, nil, w, inv, nodePrv, cfg.Payments.ChannelsConfig, false)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to init tonpayments: %w", err)
 	}
@@ -550,7 +548,7 @@ func preparePayerPaymentChannel(ctx context.Context, api ton.APIClientWrapped, p
 				continue
 			}
 
-			on, err := payments.NewPaymentChannelClient(api).ParseAsyncChannel(addr, acc.Code, acc.Data, true)
+			on, err := payments.NewPaymentChannelClient(client.NewTON(api)).ParseAsyncChannel(addr, acc.Code, acc.Data, true)
 			if err != nil {
 				log.Warn().Err(err).Str("address", addr.String()).Msg("failed to parse payment channel")
 				continue

@@ -3,7 +3,7 @@ package tunnel
 import (
 	"crypto/ed25519"
 	"fmt"
-	"github.com/xssnick/tonutils-go/adnl"
+	"github.com/xssnick/tonutils-go/adnl/keys"
 	"github.com/xssnick/tonutils-go/tl"
 	"hash/crc64"
 	"sync/atomic"
@@ -18,7 +18,7 @@ type EncryptionKeys struct {
 }
 
 func NewEncryptionKeys(sectionPrivate ed25519.PrivateKey, targetPub ed25519.PublicKey) (*EncryptionKeys, error) {
-	shKey, err := adnl.SharedKey(sectionPrivate, targetPub)
+	shKey, err := keys.SharedKey(sectionPrivate, targetPub)
 	if err != nil {
 		return nil, fmt.Errorf("shared key calc failed: %v", err)
 	}

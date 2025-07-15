@@ -14,7 +14,7 @@ import (
 	"github.com/xssnick/ton-payment-network/tonpayments/db"
 	"github.com/xssnick/ton-payment-network/tonpayments/transport"
 	"github.com/xssnick/tonutils-go/address"
-	"github.com/xssnick/tonutils-go/adnl"
+	"github.com/xssnick/tonutils-go/adnl/keys"
 	"github.com/xssnick/tonutils-go/tl"
 	"github.com/xssnick/tonutils-go/tlb"
 	"math"
@@ -147,7 +147,7 @@ func (g *Gateway) CreateRegularOutTunnel(ctx context.Context, chainTo, chainFrom
 		return nil, fmt.Errorf("generate payload key failed: %w", err)
 	}
 
-	id, err := tl.Hash(adnl.PublicKeyED25519{Key: chainTo[0].Keys.ReceiverPubKey})
+	id, err := tl.Hash(keys.PublicKeyED25519{Key: chainTo[0].Keys.ReceiverPubKey})
 	if err != nil {
 		return nil, fmt.Errorf("calc receiver adnl id failed: %w", err)
 	}
@@ -195,7 +195,7 @@ func (g *Gateway) CreateRegularOutTunnel(ctx context.Context, chainTo, chainFrom
 }
 
 func buildRoute(initial bool, msg *EncryptedMessage, cur, next *SectionInfo, prepareSystemTunnel bool) error {
-	id, err := tl.Hash(adnl.PublicKeyED25519{Key: next.Keys.ReceiverPubKey})
+	id, err := tl.Hash(keys.PublicKeyED25519{Key: next.Keys.ReceiverPubKey})
 	if err != nil {
 		return fmt.Errorf("calc receiver adnl id failed: %w", err)
 	}
@@ -479,7 +479,7 @@ func (t *RegularOutTunnel) openVirtualChannel(p *Payer, capacity *big.Int) (*Vir
 		return nil, fmt.Errorf("generate channel key failed: %w", err)
 	}
 
-	vc, firstInstructionKey, tun, err := transport.GenerateTunnel(chKey, tunChain, 5, false)
+	vc, firstInstructionKey, tun, err := transport.GenerateTunnel(chKey, tunChain, 5, false, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate tunnel: %w", err)
 	}
@@ -932,7 +932,7 @@ func (t *RegularOutTunnel) prepareInitMessage(state uint32) (*EncryptedMessage, 
 					}
 				}
 
-				id, err := tl.Hash(adnl.PublicKeyED25519{Key: t.chainFrom[0].Keys.ReceiverPubKey})
+				id, err := tl.Hash(keys.PublicKeyED25519{Key: t.chainFrom[0].Keys.ReceiverPubKey})
 				if err != nil {
 					return nil, fmt.Errorf("calc receiver adnl id failed: %w", err)
 				}

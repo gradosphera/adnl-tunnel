@@ -15,6 +15,7 @@ import (
 	"github.com/xssnick/ton-payment-network/tonpayments"
 	"github.com/xssnick/tonutils-go/adnl"
 	"github.com/xssnick/tonutils-go/adnl/dht"
+	"github.com/xssnick/tonutils-go/adnl/keys"
 	"github.com/xssnick/tonutils-go/tl"
 	"hash/crc64"
 	"math/big"
@@ -503,7 +504,7 @@ func (g *Gateway) messageHandler(peer *Peer) func(msg *adnl.MessageCustom) error
 
 			// TODO: random tunnel creation ddos protection
 			if sec == nil {
-				shKey, err := adnl.SharedKey(g.key, m.SectionPubKey)
+				shKey, err := keys.SharedKey(g.key, m.SectionPubKey)
 				if err != nil {
 					return fmt.Errorf("shared key calc failed: %v", err)
 				}
@@ -611,7 +612,7 @@ func encryptStream(cipherKeyCrc uint64, cipherKey, data []byte) ([]byte, error) 
 	// we build cipher based on shared key of tunnel+node and checksum of decrypted packet
 	// checksum is needed here to randomize cipher to make it not repeatable if underlying data is similar
 	// checksum always changes because of underlying packet "random" field of InstructionsContainer changes
-	crypt, err := adnl.NewCipherCtr(cipherKey, enc[:16])
+	crypt, err := keys.NewCipherCtr(cipherKey, enc[:16])
 	if err != nil {
 		return nil, fmt.Errorf("new cipher calc failed: %v", err)
 	}
@@ -626,7 +627,7 @@ func decryptStream(cipherKeyCrc uint64, cipherKey, data []byte) ([]byte, error) 
 	}
 	pl := data[16:]
 
-	crypt, err := adnl.NewCipherCtr(cipherKey, data[:16])
+	crypt, err := keys.NewCipherCtr(cipherKey, data[:16])
 	if err != nil {
 		return nil, fmt.Errorf("new cipher calc failed: %v", err)
 	}
