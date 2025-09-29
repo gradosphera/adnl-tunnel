@@ -1,14 +1,16 @@
 module github.com/ton-blockchain/adnl-tunnel
 
-go 1.23.3
+go 1.24.0
+
+toolchain go1.24.3
 
 require (
 	github.com/kevinms/leakybucket-go v0.0.0-20200115003610-082473db97ca
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/prometheus/client_golang v1.22.0
 	github.com/rs/zerolog v1.34.0
-	github.com/xssnick/ton-payment-network v0.3.0
-	github.com/xssnick/tonutils-go v1.14.0
+	github.com/xssnick/ton-payment-network v1.2.2
+	github.com/xssnick/tonutils-go v1.15.1
 )
 
 require (
@@ -22,10 +24,9 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/sigurn/crc16 v0.0.0-20240131213347-83fcde1e29d1 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
-	github.com/xssnick/raptorq v1.0.0 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
+	github.com/xssnick/raptorq v1.2.0 // indirect
+	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 )

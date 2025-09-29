@@ -588,7 +588,7 @@ func preparePaymentChannel(ctx context.Context, pmt *tonpayments.Service, ch []b
 	}
 
 	ctxTm, cancel := context.WithTimeout(context.Background(), 150*time.Second)
-	addr, err := pmt.DeployChannelWithNode(ctxTm, ch, nil, 0)
+	addr, err := pmt.OpenChannelWithNode(ctxTm, ch, nil, 0)
 	cancel()
 	if err != nil {
 		return nil, fmt.Errorf("failed to deploy channel with node: %w", err)

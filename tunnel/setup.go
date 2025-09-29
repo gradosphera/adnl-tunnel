@@ -564,7 +564,7 @@ func preparePayerPaymentChannel(ctx context.Context, api ton.APIClientWrapped, p
 	events <- MsgEvent{Msg: "Deploying payment channel for tunnel..."}
 
 	ctxTm, cancel := context.WithTimeout(ctx, 150*time.Second)
-	addr, err := pmt.DeployChannelWithNode(ctxTm, ch, jetton, ecID)
+	addr, err := pmt.OpenChannelWithNode(ctxTm, ch, jetton, ecID)
 	cancel()
 	if err != nil {
 		return nil, fmt.Errorf("failed to deploy channel with node: %w", err)
